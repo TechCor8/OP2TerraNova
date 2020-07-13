@@ -1,5 +1,4 @@
-﻿using B83.Image.BMP;
-using OP2UtilityDotNet;
+﻿using OP2UtilityDotNet;
 using OP2UtilityDotNet.Sprite;
 using System.Collections;
 using System.Collections.Generic;
@@ -38,6 +37,7 @@ namespace TerraNova.Systems.AssetManagement
 
 
 		private static Dictionary<int, Texture2D> _TextureLookup = new Dictionary<int, Texture2D>();
+		private static Dictionary<int, Sprite> _SpriteLookup = new Dictionary<int, Sprite>();
 		private static Dictionary<string, AudioClip> _SoundLookup = new Dictionary<string, AudioClip>();
 
 
@@ -95,6 +95,11 @@ namespace TerraNova.Systems.AssetManagement
 				Debug.LogWarning(ex);
 			}
 
+			yield return null;
+
+			float startTime = Time.realtimeSinceStartup;
+			float curTime = startTime;
+
 			// Load textures
 			for (int i=0; i < _ArtFile.imageMetas.Count; ++i)
 			{
@@ -103,20 +108,17 @@ namespace TerraNova.Systems.AssetManagement
 				if (texture != null)
 				{
 					_TextureLookup[i] = texture;
+					_SpriteLookup[i] = Sprite.Create(texture, new UnityEngine.Rect(0,0, texture.width, texture.height), Vector2.zero, 1);
 				}
 				else if (_LegacyArt != null)
 				{
-					if (i == 652)
-					{
-						i = 652; // DEBUG:
-					}
-
 					// Load legacy texture
 					try
 					{
-						Stream bmpStream = _LegacyArt.GetImageStream(i);
-						texture = GetTextureFromBMP(bmpStream);
+						OP2BitmapFile bitmap = _LegacyArt.GetImage(i);
+						texture = GetTextureFromBMP(bitmap);
 						_TextureLookup[i] = texture;
+						_SpriteLookup[i] = Sprite.Create(texture, new UnityEngine.Rect(0,0, texture.width, texture.height), Vector2.zero, 1);
 					}
 					catch (System.Exception ex)
 					{
@@ -134,26 +136,32 @@ namespace TerraNova.Systems.AssetManagement
 					yield break;
 				}
 
-				// TEST:
-				GameObject goTest = null;
-				if (texture != null)
+				// Every X seconds, take a break to render the screen
+				if (curTime + 0.25f < Time.realtimeSinceStartup)
 				{
-					goTest = new GameObject("Bitmap" + i);
-					UnityEngine.UI.RawImage image = goTest.AddComponent<UnityEngine.UI.RawImage>();
-					image.texture = texture;
-					image.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, texture.width);
-					image.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, texture.height);
-					goTest.transform.SetParent(GameObject.Find("CanvasBackground").transform);
-					goTest.transform.localPosition = Vector3.zero;
-					goTest.transform.localScale = new Vector3(1,-1,1);
+					// TEST:
+					GameObject goTest = null;
+					if (texture != null)
+					{
+						goTest = new GameObject("Bitmap" + i);
+						UnityEngine.UI.RawImage image = goTest.AddComponent<UnityEngine.UI.RawImage>();
+						image.texture = texture;
+						image.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, texture.width);
+						image.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, texture.height);
+						goTest.transform.SetParent(GameObject.Find("CanvasBackground").transform);
+						goTest.transform.localPosition = Vector3.zero;
+						goTest.transform.localScale = new Vector3(1,1,1);
+					}
+
+					yield return null;
+					curTime = Time.realtimeSinceStartup;
+
+					if (goTest != null)
+						GameObject.Destroy(goTest);
 				}
-
-				yield return null;
-
-				if (goTest != null)
-					GameObject.Destroy(goTest);
 			}
 			
+			Debug.Log("Load Time: " + (Time.realtimeSinceStartup - startTime).ToString("N2") + " seconds");
 
 			// Inform caller of success
 			onInitCB?.Invoke(true);
@@ -172,16 +180,47 @@ namespace TerraNova.Systems.AssetManagement
 			return null;
 		}
 
-		private static Texture2D GetTextureFromBMP(Stream bmpStream)
+		private static Texture2D GetTextureFromBMP(OP2BitmapFile bitmap)
 		{
-			BMPLoader loader = new BMPLoader();
-			BMPImage image = loader.LoadBMP(bmpStream);
-			return image.ToTexture2D();
+			int width = Mathf.Abs(bitmap.imageHeader.width);
+			int height = Mathf.Abs(bitmap.imageHeader.height);
+
+			// Get pixels from bitmap
+			Color32[] imageData = new Color32[width * height];
+
+			for (int y = 0; y < height; ++y)
+			{
+				for (int x = 0; x < width; ++x)
+				{
+					OP2UtilityDotNet.Bitmap.Color color = bitmap.GetEnginePixel(x, height-1 - y);
+					imageData[x + y * width] = new Color32(color.red, color.green, color.blue, color.alpha);
+				}
+			}
+
+			// Convert to texture
+			Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, true);
+            texture.SetPixels32(imageData);
+			texture.wrapMode = TextureWrapMode.Clamp;
+			//texture.filterMode = FilterMode.Point;
+            texture.Apply();
+            return texture;
+		}
+
+		public static OP2UtilityDotNet.Sprite.Animation GetAnimation(int index)
+		{
+			return _ArtFile.animations[index];
 		}
 
 		public static Texture2D GetTexture(int index)
 		{
 			return _TextureLookup[index];
+		}
+
+		public static Sprite GetSprite(int index)
+		{
+			Sprite sprite;
+			_SpriteLookup.TryGetValue(index, out sprite);
+			return sprite;
 		}
 
 		public static AudioClip GetSound(string soundName)

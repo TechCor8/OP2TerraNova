@@ -320,7 +320,7 @@ namespace B83.Image.BMP
                 return;
             }
             BitStreamReader bitReader = new BitStreamReader(aReader);
-            for (int y = 0; y < h; y++)
+            for (int y = h-1; y >= 0; y--) // Outpost 2: Flipped vertically. Used to be (y = 0; y < h; y++)
             {
                 for (int x = 0; x < w; x++)
                 {
