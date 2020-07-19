@@ -21,8 +21,11 @@ namespace TerraNova.UserInterface.Utility
 			CanvasScaler canvas = m_DraggableWindow.GetComponentInParent<CanvasScaler>();
 			Vector2 refResolution = canvas.referenceResolution;
 
+			Vector2 ratio = new Vector2(Screen.width / refResolution.x, Screen.height / refResolution.y);
+			float matchRatio = Mathf.Lerp(ratio.x, ratio.y, canvas.matchWidthOrHeight);
+
 			// Drag the window
-			m_DraggableWindow.localPosition += new Vector3(eventData.delta.x * (refResolution.x / Screen.width), eventData.delta.y * (refResolution.y / Screen.height));
+			m_DraggableWindow.anchoredPosition += new Vector2(eventData.delta.x / matchRatio, eventData.delta.y / matchRatio);
 		}
 
 		public void OnEndDrag(PointerEventData eventData)
