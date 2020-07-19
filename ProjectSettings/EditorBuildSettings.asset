@@ -11,4 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/TerraNova/Scenes/MainMenu.unity
     guid: 7c22f13c44610ae41bb28a39f593e9b4
+  - enabled: 1
+    path: Assets/TerraNova/Scenes/Game.unity
+    guid: 6eb8be9d053b842478c619432bce10fe
   m_configObjects: {}

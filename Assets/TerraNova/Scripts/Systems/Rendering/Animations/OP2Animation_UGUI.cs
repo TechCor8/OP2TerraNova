@@ -12,6 +12,8 @@ namespace TerraNova.Systems.Rendering.Animations
 	/// </summary>
 	public class OP2Animation_UGUI : MonoBehaviour
 	{
+		[SerializeField] private int _AnimationIndex = default;
+
 		private OP2UtilityDotNet.Sprite.Animation _OP2Animation;
 		private Image[] _RenderLayers;
 
@@ -20,6 +22,8 @@ namespace TerraNova.Systems.Rendering.Animations
 
 		private const float _FramesPerSecond = 30;
 		private const float _SecondsPerFrame = 1.0f / _FramesPerSecond;
+
+		private bool _CreateFromSerializedFields = true;
 
 
 
@@ -36,19 +40,36 @@ namespace TerraNova.Systems.Rendering.Animations
 			rectTransform.pivot = new Vector2(0, 1);
 
 			OP2Animation_UGUI animation = root.AddComponent<OP2Animation_UGUI>();
+			animation._CreateFromSerializedFields = false;
 			animation.Initialize(op2Animation);
 
 			return animation;
 		}
 
-		private void Awake()
+		private void Start()
 		{
 			// Disable update if animation has not been initialized
 			if (_OP2Animation == null)
+			{
 				enabled = false;
+
+				if (_CreateFromSerializedFields)
+				{
+					// Initialize animation
+					OP2UtilityDotNet.Sprite.Animation animationData = AssetManager.GetAnimation(_AnimationIndex);
+					if (animationData != null)
+					{
+						Initialize(animationData);
+					}
+					else
+					{
+						Debug.LogWarning("Animation data not found for index: " + _AnimationIndex);
+					}
+				}
+			}
 		}
 
-		public void Initialize(OP2UtilityDotNet.Sprite.Animation op2Animation)
+		private void Initialize(OP2UtilityDotNet.Sprite.Animation op2Animation)
 		{
 			if (_OP2Animation != null)
 			{
@@ -146,7 +167,7 @@ namespace TerraNova.Systems.Rendering.Animations
 			//_OP2Animation.pixelDisplacement
 		}
 
-		public void Release()
+		private void Release()
 		{
 			// Destroy layers
 			foreach (Image renderImage in _RenderLayers)
