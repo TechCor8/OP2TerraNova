@@ -60,5 +60,8 @@ crashlytics-build.properties
 
 #Outpost 2 assets
 art.vol
+sound.vol
+sheets.vol
+voices.vol
 op2.clm
 OP2_ART.BMP

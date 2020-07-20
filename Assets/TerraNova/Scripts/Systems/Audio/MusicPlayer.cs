@@ -11,6 +11,12 @@ namespace TerraNova.Systems.Audio
 
 		private string _CurrentClipName;
 
+		public static float UserVolume
+		{
+			get => _Instance._MusicSource.volume;
+			set => _Instance._MusicSource.volume = value;
+		}
+
 
 		private void Awake()
 		{
@@ -50,6 +56,13 @@ namespace TerraNova.Systems.Audio
 			_Instance._MusicSource.Play();
 
 			_Instance._CurrentClipName = clipName;
+		}
+
+		public static void StopMusic()
+		{
+			_Instance._MusicSource.Stop();
+
+			_Instance._CurrentClipName = null;
 		}
 
 		private void OnDestroy()

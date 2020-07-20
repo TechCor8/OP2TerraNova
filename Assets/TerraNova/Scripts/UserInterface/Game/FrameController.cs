@@ -1,5 +1,5 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
+using TerraNova.Systems.Audio;
 using TerraNova.UserInterface.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,6 +19,8 @@ namespace TerraNova.UserInterface.Game
 
 		private float _OriginalTimeScale;
 
+		private const string ClickSound = "beep5";
+
 
 		private void Awake()
 		{
@@ -34,6 +36,8 @@ namespace TerraNova.UserInterface.Game
 
 			// Confirm quit
 			ConfirmPopup.CreateFromResource("UserInterface/Game/QuitPopup", OnQuitPopupClosed);
+
+			SoundPlayer.PlaySound(ClickSound);
 		}
 
 		private void OnQuitPopupClosed(bool didConfirm)
@@ -52,6 +56,8 @@ namespace TerraNova.UserInterface.Game
 			Screen.fullScreen = !Screen.fullScreen;
 
 			RefreshMaximizeButton();
+
+			SoundPlayer.PlaySound(ClickSound);
 		}
 
 #if UNITY_STANDALONE_WIN
@@ -61,11 +67,15 @@ namespace TerraNova.UserInterface.Game
 		public void OnClick_Minimize()
 		{
 			ShowWindow(GetActiveWindow(), 2);
+
+			SoundPlayer.PlaySound(ClickSound);
 		}
 #else
 		public void OnClick_Minimize()
 		{
 			Debug.LogWarning("Minimize not supported on this platform!");
+
+			SoundPlayer.PlaySound(ClickSound);
 		}
 #endif
 

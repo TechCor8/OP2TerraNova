@@ -91,13 +91,17 @@ public class WavUtility
 
 		float[] data = new float[wavSize];
 
-		sbyte maxValue = sbyte.MaxValue;
+		//sbyte maxValue = sbyte.MaxValue;
 
 		int i = 0;
 		while (i < wavSize) {
-			data [i] = (float)source [i] / maxValue;
+			data [i] = (float)(source[i] - sbyte.MaxValue) / sbyte.MaxValue;
 			++i;
 		}
+
+		// Clear start of sample data to eliminate popping/crackling
+		for (int j=0; j < 100 && j < wavSize; ++j)
+			data[j] = 0;
 
 		return data;
 	}

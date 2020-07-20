@@ -1,4 +1,5 @@
 ﻿using OP2UtilityDotNet;
+using OP2UtilityDotNet.Archive;
 using OP2UtilityDotNet.Sprite;
 using System.Collections;
 using System.Collections.Generic;
@@ -139,32 +140,90 @@ namespace TerraNova.Systems.AssetManagement
 				// Every X seconds, take a break to render the screen
 				if (curTime + 0.25f < Time.realtimeSinceStartup)
 				{
-					// TEST:
-					GameObject goTest = null;
-					if (texture != null)
-					{
-						goTest = new GameObject("Bitmap" + i);
-						UnityEngine.UI.RawImage image = goTest.AddComponent<UnityEngine.UI.RawImage>();
-						image.texture = texture;
-						image.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, texture.width);
-						image.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, texture.height);
-						goTest.transform.SetParent(GameObject.Find("CanvasBackground").transform);
-						goTest.transform.localPosition = Vector3.zero;
-						goTest.transform.localScale = new Vector3(1,1,1);
-					}
-
 					yield return null;
 					curTime = Time.realtimeSinceStartup;
-
-					if (goTest != null)
-						GameObject.Destroy(goTest);
 				}
 			}
-			
-			Debug.Log("Load Time: " + (Time.realtimeSinceStartup - startTime).ToString("N2") + " seconds");
 
+			Debug.Log("Texture Load Time: " + (Time.realtimeSinceStartup - startTime).ToString("N2") + " seconds");
+			
+			yield return LoadSoundsRoutine("sound.vol");
+			yield return LoadSoundsRoutine("voices.vol");
+
+			Debug.Log("Total Load Time: " + (Time.realtimeSinceStartup - startTime).ToString("N2") + " seconds");
+			
 			// Inform caller of success
 			onInitCB?.Invoke(true);
+		}
+
+		private static IEnumerator LoadSoundsRoutine(string archivePath)
+		{
+			float startTime = Time.realtimeSinceStartup;
+			float curTime = startTime;
+
+			// Get file names from legacy sound archive.
+			// We do this to cache the sounds used by the game engine.
+			List<string> soundFileNames = new List<string>();
+
+			try
+			{
+				VolFile soundArchive = new VolFile(archivePath);
+				int count = soundArchive.GetCount();
+				for (int i=0; i < count; ++i)
+				{
+					soundFileNames.Add(Path.GetFileNameWithoutExtension(soundArchive.GetName(i)));
+				}
+			}
+			catch (System.Exception ex)
+			{
+				Debug.LogWarning(ex);
+			}
+
+			// Load sounds
+			foreach (string soundFileName in soundFileNames)
+			{
+				AudioClip soundClip = GetAssetFromModBundle<AudioClip>(soundFileName);
+
+				if (soundClip != null)
+				{
+					_SoundLookup[soundFileName] = soundClip;
+				}
+				else if (_LegacyAssets != null)
+				{
+					// Load legacy sound
+					try
+					{
+						byte[] wavData = _LegacyAssets.GetResource(soundFileName + ".wav");
+						if (wavData != null)
+						{
+							_SoundLookup[soundFileName] = WavUtility.ToAudioClip(wavData, 0, soundFileName);
+						}
+						else
+						{
+							Debug.LogWarning("Could not find resource with name: " + soundFileName);
+						}
+					}
+					catch (System.Exception ex)
+					{
+						Debug.LogException(ex);
+						Debug.LogError("Sound File: " + soundFileName);
+					}
+				}
+				else
+				{
+					// Could not find sound!
+					Debug.LogWarning("Could not find sound with name: " + soundFileName);
+				}
+
+				// Every X seconds, take a break to render the screen
+				if (curTime + 0.25f < Time.realtimeSinceStartup)
+				{
+					yield return null;
+					curTime = Time.realtimeSinceStartup;
+				}
+			}
+
+			Debug.Log("Sounds Load Time: " + (Time.realtimeSinceStartup - startTime).ToString("N2") + " seconds");
 		}
 
 		// Gets an asset from a mod bundle based on priority order, or returns null, if the asset is not in any mod bundle.
