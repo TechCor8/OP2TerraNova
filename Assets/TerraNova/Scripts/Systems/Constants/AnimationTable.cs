@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace TerraNova.Systems.Data
+namespace TerraNova.Systems.Constants
 {
 	/// <summary>
 	/// Lookup table for OP2 animations.
