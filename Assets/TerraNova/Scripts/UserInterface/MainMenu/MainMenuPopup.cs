@@ -65,7 +65,7 @@ namespace TerraNova.UserInterface.MainMenu
 
 		public void OnClick_About()
 		{
-			InfoPopup popup = InfoPopup.Create("UserInterface/MainMenu/AboutPopup", Show);
+			InfoPopup popup = InfoPopup.CreateFromResource("UserInterface/MainMenu/AboutPopup", Show);
 			popup.Show();
 
 			Hide();
