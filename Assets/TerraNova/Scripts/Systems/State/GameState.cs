@@ -33,6 +33,7 @@ namespace TerraNova.Systems.State
 		public static ReadOnlyDictionary<map_id, GlobalVehicleInfo> VehicleInfo		{ get; private set; }
 		public static ReadOnlyDictionary<map_id, GlobalWeaponInfo> WeaponInfo		{ get; private set; }
 		public static ReadOnlyDictionary<map_id, GlobalUnitInfo> StarshipInfo		{ get; private set; }
+		public static ReadOnlyDictionary<MineInfoKey, GlobalMineInfo> MineInfo		{ get; private set; }
 		//public static ReadOnlyCollection<GlobalTechInfo> techInfo					{ get; private set; }
 
 		// Player / Unit State
@@ -54,6 +55,7 @@ namespace TerraNova.Systems.State
 			Dictionary<map_id, GlobalVehicleInfo> vehicleInfo = SheetData.ReadVehicleSheet();
 			Dictionary<map_id, GlobalWeaponInfo> weaponInfo = SheetData.ReadWeaponSheet();
 			Dictionary<map_id, GlobalUnitInfo> starshipInfo = SheetData.ReadStarshipSheet();
+			Dictionary<MineInfoKey, GlobalMineInfo> mineInfo = SheetData.ReadMineSheet();
 
 			if (buildingInfo == null)// || minesSheet == null || moraleSheet == null || spaceSheet == null || vehiclesSheet == null || weaponsSheet == null)
 			{
@@ -64,6 +66,7 @@ namespace TerraNova.Systems.State
 			VehicleInfo = new ReadOnlyDictionary<map_id, GlobalVehicleInfo>(vehicleInfo);
 			WeaponInfo = new ReadOnlyDictionary<map_id, GlobalWeaponInfo>(weaponInfo);
 			StarshipInfo = new ReadOnlyDictionary<map_id, GlobalUnitInfo>(starshipInfo);
+			MineInfo = new ReadOnlyDictionary<MineInfoKey, GlobalMineInfo>(mineInfo);
 
 			return true;
 		}

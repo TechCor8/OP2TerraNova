@@ -186,7 +186,7 @@ namespace TerraNova.Systems.Constants
 		}
 
 		/// <summary>
-		/// Read weapon sheet.
+		/// Read starship sheet.
 		/// </summary>
 		public static Dictionary<map_id, GlobalUnitInfo> ReadStarshipSheet()
 		{
@@ -217,8 +217,48 @@ namespace TerraNova.Systems.Constants
 			}
 
 			return infoRecords;
+		}
 
-			//string[][] minesSheet = ReadSheet("mines.txt");
+		/// <summary>
+		/// Read mining beacon sheet.
+		/// </summary>
+		public static Dictionary<MineInfoKey, GlobalMineInfo> ReadMineSheet()
+		{
+			string[][] miningSheet = ReadSheet("mines.txt");
+			if (miningSheet == null)
+				return null;
+
+			Dictionary<MineInfoKey, GlobalMineInfo> infoRecords = new Dictionary<MineInfoKey, GlobalMineInfo>(miningSheet.GetLength(0));
+
+			// Read rows
+			for (int i=0; i < miningSheet.GetLength(0); ++i)
+			{
+				string[] row = miningSheet[i];
+
+				string strYield			= row[0];				// Yield
+				int nVariant			= ReadInt(row[1]);		// Variant
+				int initialYield		= ReadInt(row[2]);		// Initial_Yield_%
+				int peakTruck			= ReadInt(row[3]);		// Peak_Truck
+				int peakYield			= ReadInt(row[4]);		// Peak_Yield_%
+				int minTruck			= ReadInt(row[5]);		// Min_Truck
+				int minYield			= ReadInt(row[6]);      // Min_Yield_%
+
+				Yield yield = Yield.Bar3;
+
+				switch (strYield)
+				{
+					case "High":	yield = Yield.Bar3;		break;
+					case "Med":		yield = Yield.Bar2;		break;
+					case "Low":		yield = Yield.Bar1;		break;
+				}
+
+				Variant variant = (Variant)nVariant;
+
+				infoRecords[new MineInfoKey(yield, variant)] = new GlobalMineInfo(yield, variant, initialYield, peakTruck, peakYield, minTruck, minYield);
+			}
+
+			return infoRecords;
+
 			//string[][] moraleSheet = ReadSheet("morale.txt");
 		}
 
