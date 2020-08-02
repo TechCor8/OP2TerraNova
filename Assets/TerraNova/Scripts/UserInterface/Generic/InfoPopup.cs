@@ -9,7 +9,7 @@ namespace TerraNova.UserInterface.Generic
 	/// </summary>
 	public class InfoPopup : MonoBehaviour
 	{
-		private const string PrefabPath = "Game/InfoPopup";
+		private const string PrefabPath = "UserInterface/Game/InfoPopup";
 
 		[SerializeField] private Text _MessageText		= default;
 
