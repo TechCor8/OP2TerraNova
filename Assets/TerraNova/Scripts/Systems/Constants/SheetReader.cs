@@ -10,7 +10,7 @@ namespace TerraNova.Systems.Constants
 	/// <summary>
 	/// Parses sheets.vol data into class objects.
 	/// </summary>
-	public static class SheetData
+	public static class SheetReader
 	{
 		/// <summary>
 		/// Read building sheet.

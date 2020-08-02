@@ -54,12 +54,12 @@ namespace TerraNova.Systems.State
 		public static bool Initialize()
 		{
 			// Read info sheets
-			Dictionary<map_id, GlobalStructureInfo> buildingInfo = SheetData.ReadBuildingSheet();
-			Dictionary<map_id, GlobalVehicleInfo> vehicleInfo = SheetData.ReadVehicleSheet();
-			Dictionary<map_id, GlobalWeaponInfo> weaponInfo = SheetData.ReadWeaponSheet();
-			Dictionary<map_id, GlobalUnitInfo> starshipInfo = SheetData.ReadStarshipSheet();
-			Dictionary<MineInfoKey, GlobalMineInfo> mineInfo = SheetData.ReadMineSheet();
-			GlobalMoraleInfo moraleInfo = SheetData.ReadMoraleSheet();
+			Dictionary<map_id, GlobalStructureInfo> buildingInfo = SheetReader.ReadBuildingSheet();
+			Dictionary<map_id, GlobalVehicleInfo> vehicleInfo = SheetReader.ReadVehicleSheet();
+			Dictionary<map_id, GlobalWeaponInfo> weaponInfo = SheetReader.ReadWeaponSheet();
+			Dictionary<map_id, GlobalUnitInfo> starshipInfo = SheetReader.ReadStarshipSheet();
+			Dictionary<MineInfoKey, GlobalMineInfo> mineInfo = SheetReader.ReadMineSheet();
+			GlobalMoraleInfo moraleInfo = SheetReader.ReadMoraleSheet();
 
 			if (buildingInfo == null || vehicleInfo == null || weaponInfo == null || starshipInfo == null || mineInfo == null || moraleInfo == null)
 			{
