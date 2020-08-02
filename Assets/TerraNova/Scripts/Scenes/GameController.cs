@@ -26,21 +26,15 @@ namespace TerraNova.Scenes
 			// Stop menu music
 			MusicPlayer.StopMusic();
 
-			// Load info sheets
-			if (!GameState.Initialize())
-			{
-				InfoPopup.Create("Failed to load sheets.", OnLoadFailed);
-				return;
-			}
-
-			// Load mission and map
+			// Load mission
 			MissionRoot mission = LoadMission(SceneParameters.MissionPath);
 			if (mission == null)
 			{
 				InfoPopup.Create("Failed to load mission.", OnLoadFailed);
 				return;
 			}
-
+			
+			// Load map
 			Map map = LoadMap(mission);
 			if (mission == null)
 			{
@@ -48,6 +42,14 @@ namespace TerraNova.Scenes
 				return;
 			}
 
+			// Load info sheets
+			if (!GameState.Initialize(mission.levelDetails.techTreeName))
+			{
+				InfoPopup.Create("Failed to load sheets.", OnLoadFailed);
+				return;
+			}
+
+			// Initialize map
 			//_MapRenderer.Initialize(mission, map, OnLoadMapComplete);
 		}
 

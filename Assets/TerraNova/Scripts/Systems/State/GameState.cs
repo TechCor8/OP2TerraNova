@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using TerraNova.Systems.Constants;
 using TerraNova.Systems.State.Live.Population;
+using TerraNova.Systems.State.Live.ResearchInfo;
 using TerraNova.Systems.State.Live.UnitTypeInfo;
 
 namespace TerraNova.Systems.State
@@ -35,7 +36,7 @@ namespace TerraNova.Systems.State
 		public static ReadOnlyDictionary<map_id, GlobalWeaponInfo> WeaponInfo		{ get; private set; }
 		public static ReadOnlyDictionary<map_id, GlobalUnitInfo> StarshipInfo		{ get; private set; }
 		public static ReadOnlyDictionary<MineInfoKey, GlobalMineInfo> MineInfo		{ get; private set; }
-		//public static ReadOnlyCollection<GlobalTechInfo> techInfo					{ get; private set; }
+		public static ReadOnlyDictionary<int, GlobalTechInfo> TechInfo				{ get; private set; }
 
 		public static GlobalMoraleInfo MoraleInfo									{ get; private set; }
 
@@ -51,7 +52,7 @@ namespace TerraNova.Systems.State
 		//public PlayerStrengthMap strengthMap									{ get; private set; }
 
 
-		public static bool Initialize()
+		public static bool Initialize(string techTreeName)
 		{
 			// Read info sheets
 			Dictionary<map_id, GlobalStructureInfo> buildingInfo = SheetReader.ReadBuildingSheet();
@@ -60,8 +61,9 @@ namespace TerraNova.Systems.State
 			Dictionary<map_id, GlobalUnitInfo> starshipInfo = SheetReader.ReadStarshipSheet();
 			Dictionary<MineInfoKey, GlobalMineInfo> mineInfo = SheetReader.ReadMineSheet();
 			GlobalMoraleInfo moraleInfo = SheetReader.ReadMoraleSheet();
+			Dictionary<int, GlobalTechInfo> techInfo = TechSheetReader.ReadTechSheet(techTreeName);
 
-			if (buildingInfo == null || vehicleInfo == null || weaponInfo == null || starshipInfo == null || mineInfo == null || moraleInfo == null)
+			if (buildingInfo == null || vehicleInfo == null || weaponInfo == null || starshipInfo == null || mineInfo == null || moraleInfo == null || techInfo == null)
 			{
 				return false;
 			}
@@ -72,6 +74,7 @@ namespace TerraNova.Systems.State
 			StarshipInfo = new ReadOnlyDictionary<map_id, GlobalUnitInfo>(starshipInfo);
 			MineInfo = new ReadOnlyDictionary<MineInfoKey, GlobalMineInfo>(mineInfo);
 			MoraleInfo = moraleInfo;
+			TechInfo = new ReadOnlyDictionary<int, GlobalTechInfo>(techInfo);
 
 			return true;
 		}

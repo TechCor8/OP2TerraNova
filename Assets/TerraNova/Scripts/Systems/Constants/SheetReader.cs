@@ -423,7 +423,7 @@ namespace TerraNova.Systems.Constants
 			return ColonyType.Gaia;
 		}
 
-		private static map_id GetMapIdFromCodeName(string codeName)
+		public static map_id GetMapIdFromCodeName(string codeName)
 		{
 			switch (codeName)
 			{
@@ -454,7 +454,7 @@ namespace TerraNova.Systems.Constants
 				case "GARAGE": 					return map_id.Garage;
 				case "GORF": 					return map_id.GORF;
 				case "RESIDENCE_E": 			return map_id.AdvancedResidence;
-				case "RESIDENCE	0": 			return map_id.Residence;
+				case "RESIDENCE":				return map_id.Residence;
 				case "RESIDENCE_P": 			return map_id.ReinforcedResidence;
 				case "OBSERVATORY": 			return map_id.Observatory;
 				case "METEOR_DEF": 				return map_id.MeteorDefense;
