@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using TerraNova.Systems.Constants;
+using TerraNova.Systems.State.Live.Population;
 using TerraNova.Systems.State.Live.UnitTypeInfo;
 
 namespace TerraNova.Systems.State
@@ -36,6 +37,8 @@ namespace TerraNova.Systems.State
 		public static ReadOnlyDictionary<MineInfoKey, GlobalMineInfo> MineInfo		{ get; private set; }
 		//public static ReadOnlyCollection<GlobalTechInfo> techInfo					{ get; private set; }
 
+		public static GlobalMoraleInfo MoraleInfo									{ get; private set; }
+
 		// Player / Unit State
 		//public GaiaState gaia													{ get; private set; }
 		//public ReadOnlyCollection<PlayerState> players							{ get; private set; }
@@ -56,8 +59,9 @@ namespace TerraNova.Systems.State
 			Dictionary<map_id, GlobalWeaponInfo> weaponInfo = SheetData.ReadWeaponSheet();
 			Dictionary<map_id, GlobalUnitInfo> starshipInfo = SheetData.ReadStarshipSheet();
 			Dictionary<MineInfoKey, GlobalMineInfo> mineInfo = SheetData.ReadMineSheet();
+			GlobalMoraleInfo moraleInfo = SheetData.ReadMoraleSheet();
 
-			if (buildingInfo == null)// || minesSheet == null || moraleSheet == null || spaceSheet == null || vehiclesSheet == null || weaponsSheet == null)
+			if (buildingInfo == null || vehicleInfo == null || weaponInfo == null || starshipInfo == null || mineInfo == null || moraleInfo == null)
 			{
 				return false;
 			}
@@ -67,6 +71,7 @@ namespace TerraNova.Systems.State
 			WeaponInfo = new ReadOnlyDictionary<map_id, GlobalWeaponInfo>(weaponInfo);
 			StarshipInfo = new ReadOnlyDictionary<map_id, GlobalUnitInfo>(starshipInfo);
 			MineInfo = new ReadOnlyDictionary<MineInfoKey, GlobalMineInfo>(mineInfo);
+			MoraleInfo = moraleInfo;
 
 			return true;
 		}

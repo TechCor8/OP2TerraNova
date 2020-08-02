@@ -2,6 +2,7 @@
 using OP2UtilityDotNet;
 using System.Collections.Generic;
 using System.IO;
+using TerraNova.Systems.State.Live.Population;
 using TerraNova.Systems.State.Live.UnitTypeInfo;
 
 namespace TerraNova.Systems.Constants
@@ -26,6 +27,10 @@ namespace TerraNova.Systems.Constants
 			for (int i=0; i < buildingSheet.GetLength(0); ++i)
 			{
 				string[] row = buildingSheet[i];
+
+				// Skip rows that don't contain enough data (probably empty line)
+				if (row.Length < 32)
+					continue;
 
 				string codeName			= row[0];				// Code_Name
 				string produceName		= row[1];				// Produce List Name
@@ -96,6 +101,10 @@ namespace TerraNova.Systems.Constants
 			{
 				string[] row = vehicleSheet[i];
 
+				// Skip rows that don't contain enough data (probably empty line)
+				if (row.Length < 19)
+					continue;
+
 				string codeName			= row[0];				// Code_Name
 				string unitName			= row[1];				// Unit Name
 				string strTrackType		= row[2];				// Track Type [W/T/L/M]
@@ -159,6 +168,10 @@ namespace TerraNova.Systems.Constants
 			{
 				string[] row = weaponSheet[i];
 
+				// Skip rows that don't contain enough data (probably empty line)
+				if (row.Length < 14)
+					continue;
+
 				string codeName			= row[0];				// Code_Name
 				string weaponName		= row[1];				// Weapon Name
 				int damageRadius		= ReadInt(row[2]);		// Damage Radius
@@ -201,6 +214,10 @@ namespace TerraNova.Systems.Constants
 			{
 				string[] row = starshipSheet[i];
 
+				// Skip rows that don't contain enough data (probably empty line)
+				if (row.Length < 7)
+					continue;
+
 				string codeName			= row[0];				// Code_Name
 				string unitName			= row[1];				// Unit Name
 				ColonyType owner		= ReadOwner(row[2]);	// Owner [P/E/B]
@@ -235,6 +252,10 @@ namespace TerraNova.Systems.Constants
 			{
 				string[] row = miningSheet[i];
 
+				// Skip rows that don't contain enough data (probably empty line)
+				if (row.Length < 7)
+					continue;
+
 				string strYield			= row[0];				// Yield
 				int nVariant			= ReadInt(row[1]);		// Variant
 				int initialYield		= ReadInt(row[2]);		// Initial_Yield_%
@@ -258,8 +279,68 @@ namespace TerraNova.Systems.Constants
 			}
 
 			return infoRecords;
+		}
 
-			//string[][] moraleSheet = ReadSheet("morale.txt");
+		/// <summary>
+		/// Read morale sheet.
+		/// </summary>
+		public static GlobalMoraleInfo ReadMoraleSheet()
+		{
+			string[][] miningSheet = ReadSheet("morale.txt");
+			if (miningSheet == null)
+				return null;
+
+			// Read MoraleState rows
+			List<MoraleState> moraleStates = new List<MoraleState>();
+
+			int rowIndex = 0;
+			for ( ; rowIndex < miningSheet.GetLength(0); ++rowIndex)
+			{
+				string[] row = miningSheet[rowIndex];
+
+				// Table ends when row is empty
+				if (row[0] == "")
+					break;
+
+				// Skip rows that don't contain enough data (probably empty line)
+				if (row.Length < 9)
+					continue;
+
+				string codeName			= row[0];
+				int requiredPoints		= ReadInt(row[1]);
+				int powerBonus			= ReadInt(row[2]);
+				int researchBonus		= ReadInt(row[3]);
+				int factoryBonus		= ReadInt(row[4]);
+				int foodBonus			= ReadInt(row[5]);
+				int defectRate			= ReadInt(row[6]);
+				int fertilityRate		= ReadInt(row[7]);
+				int deathRate			= ReadInt(row[8]);
+
+				MoraleLevel level = GetMoraleLevelFromCodeName(codeName);
+
+				moraleStates.Add(new MoraleState(level, requiredPoints, powerBonus, researchBonus, factoryBonus, foodBonus, defectRate, fertilityRate, deathRate));
+			}
+
+			// Read event rows
+			Dictionary<MoraleEvent, int> moraleEvents = new Dictionary<MoraleEvent, int>();
+
+			for ( ; rowIndex < miningSheet.GetLength(0); ++rowIndex)
+			{
+				string[] row = miningSheet[rowIndex];
+
+				// Skip empty rows
+				if (row[0] == "")
+					continue;
+
+				string codeName		= row[0];
+				int value			= ReadInt(GetFirstColumnWithData(row, 1));
+
+				MoraleEvent moraleEvent = GetMoraleEventFromCodeName(codeName);
+
+				moraleEvents[moraleEvent] = value;
+			}
+
+			return new GlobalMoraleInfo(moraleStates, moraleEvents);
 		}
 
 		private static string[][] ReadSheet(string sheetPath)
@@ -285,12 +366,15 @@ namespace TerraNova.Systems.Constants
 						do
 						{
 							// Parse row
-							rows.Add(line.Split('\t'));
-
+							if (line.Length == 0 || line[0] != ';') // Skip comment lines
+							{
+								rows.Add(line.Split('\t'));
+							}
+							
 							// Read next line
 							line = reader.ReadLine();
 						}
-						while (!string.IsNullOrEmpty(line));
+						while (line != null);
 					}
 				}
 			}
@@ -300,6 +384,17 @@ namespace TerraNova.Systems.Constants
 			}
 
 			return rows.ToArray();
+		}
+
+		private static string GetFirstColumnWithData(string[] row, int startIndex)
+		{
+			for (int i=startIndex; i < row.Length; ++i)
+			{
+				if (!string.IsNullOrWhiteSpace(row[i]))
+					return row[i];
+			}
+
+			return "";
 		}
 
 		private static bool ReadBool(string val)
@@ -454,6 +549,96 @@ namespace TerraNova.Systems.Constants
 			}
 
 			return map_id.None;
+		}
+
+		private static MoraleLevel GetMoraleLevelFromCodeName(string codeName)
+		{
+			switch (codeName)
+			{
+				case "UTOPIA":		return MoraleLevel.Excellent;
+				case "GROOVY":		return MoraleLevel.Good;
+				case "OKAYFINE":	return MoraleLevel.Fair;
+				case "UPSET":		return MoraleLevel.Poor;
+				case "WAYBAD":		return MoraleLevel.Terrible;
+			}
+
+			return MoraleLevel.Excellent;
+		}
+
+		private static MoraleEvent GetMoraleEventFromCodeName(string codeName)
+		{
+			switch (codeName)
+			{
+				case "KID_DIES":				return MoraleEvent.KID_DIES;
+				case "ADULT_DIES":				return MoraleEvent.ADULT_DIES;
+				case "KID_BORN":				return MoraleEvent.KID_BORN;
+				case "GOOD_BUILD_DIES":			return MoraleEvent.GOOD_BUILD_DIES;
+				case "REG_BUILD_DIES":			return MoraleEvent.REG_BUILD_DIES;
+				case "NEW_TECH_BORN":			return MoraleEvent.NEW_TECH_BORN;
+				case "DISASTER_NO_WARN":		return MoraleEvent.DISASTER_NO_WARN;
+				case "DISASTER_WARNED":			return MoraleEvent.DISASTER_WARNED;
+				case "CONSUMER_GOODS_1":		return MoraleEvent.CONSUMER_GOODS_1;
+				case "CONSUMER_GOODS_2":		return MoraleEvent.CONSUMER_GOODS_2;
+				case "CONSUMER_GOODS_3":		return MoraleEvent.CONSUMER_GOODS_3;
+				case "ENEMY_GOOD_DIES":			return MoraleEvent.ENEMY_GOOD_DIES;
+				case "ENEMY_BAD_DIES":			return MoraleEvent.ENEMY_BAD_DIES;
+				case "ENEMY_VEH_DIES":			return MoraleEvent.ENEMY_VEH_DIES;
+				case "TECH_SCHOOL":				return MoraleEvent.TECH_SCHOOL;
+				case "PHD_TRAINED":				return MoraleEvent.PHD_TRAINED;
+				case "CC_BORN":					return MoraleEvent.CC_BORN;
+				case "EVENT_DEC_RATE":			return MoraleEvent.EVENT_DEC_RATE;
+				case "CROWDED_NOT":				return MoraleEvent.CROWDED_NOT;
+				case "CROWDED_LOW":				return MoraleEvent.CROWDED_LOW;
+				case "CROWDED_MED":				return MoraleEvent.CROWDED_MED;
+				case "CROWDED_HIGH":			return MoraleEvent.CROWDED_HIGH;
+				case "CROWDED_MAX":				return MoraleEvent.CROWDED_MAX;
+				case "FOOD_SURPLUS":			return MoraleEvent.FOOD_SURPLUS;
+				case "FOOD_DEFICIT_BIGSUPPLY":	return MoraleEvent.FOOD_DEFICIT_BIGSUPPLY;
+				case "FOOD_DEFICIT":			return MoraleEvent.FOOD_DEFICIT;
+				case "FOOD_STARVING":			return MoraleEvent.FOOD_STARVING;
+				case "DIS_BLD_LOW":				return MoraleEvent.DIS_BLD_LOW;
+				case "DIS_BLD_MED":				return MoraleEvent.DIS_BLD_MED;
+				case "DIS_BLD_HIGH":			return MoraleEvent.DIS_BLD_HIGH;
+				case "DIS_BLD_MAX":				return MoraleEvent.DIS_BLD_MAX;
+				case "REC_UT_LOW":				return MoraleEvent.REC_UT_LOW;
+				case "REC_UT_MED":				return MoraleEvent.REC_UT_MED;
+				case "REC_UT_HIGH":				return MoraleEvent.REC_UT_HIGH;
+				case "REC_UT_MAX":				return MoraleEvent.REC_UT_MAX;
+				case "FORUM_UT_LOW":			return MoraleEvent.FORUM_UT_LOW;
+				case "FORUM_UT_MED":			return MoraleEvent.FORUM_UT_MED;
+				case "FORUM_UT_HIGH":			return MoraleEvent.FORUM_UT_HIGH;
+				case "FORUM_UT_MAX":			return MoraleEvent.FORUM_UT_MAX;
+				case "MED_UT_LOW":				return MoraleEvent.MED_UT_LOW;
+				case "MED_UT_MED":				return MoraleEvent.MED_UT_MED;
+				case "MED_UT_HIGH":				return MoraleEvent.MED_UT_HIGH;
+				case "MED_UT_MAX":				return MoraleEvent.MED_UT_MAX;
+				case "NURSERY_ON":				return MoraleEvent.NURSERY_ON;
+				case "UNIV_ON":					return MoraleEvent.UNIV_ON;
+				case "DIS_MET_ON":				return MoraleEvent.DIS_MET_ON;
+				case "DIS_VOL_ON":				return MoraleEvent.DIS_VOL_ON;
+				case "DIS_SAND_ON":				return MoraleEvent.DIS_SAND_ON;
+				case "DIS_QUAKE_ON":			return MoraleEvent.DIS_QUAKE_ON;
+				case "DIS_ELEC_ON":				return MoraleEvent.DIS_ELEC_ON;
+				case "DIRT_LOW":				return MoraleEvent.DIRT_LOW;
+				case "DIRT_MED":				return MoraleEvent.DIRT_MED;
+				case "DIRT_HIGH":				return MoraleEvent.DIRT_HIGH;
+				case "DIRT_MAX":				return MoraleEvent.DIRT_MAX;
+				case "UNOC_LOW":				return MoraleEvent.UNOC_LOW;
+				case "UNOC_MED":				return MoraleEvent.UNOC_MED;
+				case "UNOC_HIGH":				return MoraleEvent.UNOC_HIGH;
+				case "PHD_WHINE_LOW":			return MoraleEvent.PHD_WHINE_LOW;
+				case "PHD_WHINE_MED":			return MoraleEvent.PHD_WHINE_MED;
+				case "PHD_WHINE_HIGH":			return MoraleEvent.PHD_WHINE_HIGH;
+				case "PHD_WHINE_MAX":			return MoraleEvent.PHD_WHINE_MAX;
+				case "DIFF_EASY":				return MoraleEvent.DIFF_EASY;
+				case "DIFF_MED":				return MoraleEvent.DIFF_MED;
+				case "DIFF_HARD":				return MoraleEvent.DIFF_HARD;
+				case "DIFF_EASY_PLY":			return MoraleEvent.DIFF_EASY_PLY;
+				case "DIFF_MED_PLY":			return MoraleEvent.DIFF_MED_PLY;
+				case "DIFF_HARD_PLY":			return MoraleEvent.DIFF_HARD_PLY;
+			}
+
+			return MoraleEvent.None;
 		}
 	}
 }
