@@ -6,6 +6,7 @@ using System.IO;
 using TerraNova.Systems;
 using TerraNova.Systems.Audio;
 using TerraNova.Systems.Constants;
+//using TerraNova.Systems.GameMap;
 using TerraNova.Systems.State;
 using TerraNova.UserInterface.Generic;
 using UnityEngine;
@@ -20,7 +21,7 @@ namespace TerraNova.Scenes
 	{
 		//[SerializeField] private MapRenderer _MapRenderer	= default;
 
-
+		
 		private void Awake()
 		{
 			// Stop menu music
@@ -33,7 +34,7 @@ namespace TerraNova.Scenes
 				InfoPopup.Create("Failed to load mission.", OnLoadFailed);
 				return;
 			}
-			
+
 			// Load map
 			Map map = LoadMap(mission);
 			if (mission == null)
@@ -42,12 +43,18 @@ namespace TerraNova.Scenes
 				return;
 			}
 
-			// Load info sheets
-			if (!GameState.Initialize(mission.levelDetails.techTreeName))
+			// Load game state
+			string error;
+			if (!GameState.Initialize(mission, SceneParameters.RandomSeed, out error))
 			{
-				InfoPopup.Create("Failed to load sheets.", OnLoadFailed);
+				InfoPopup.Create(error, OnLoadFailed);
 				return;
 			}
+
+			// Setup Game
+			//SetDaylightEverywhere(tethysGame.daylightEverywhere);
+			//SetDaylightMoves(tethysGame.daylightMoves);
+			//SetInitialLightLevel(tethysGame.initialLightLevel);
 
 			// Initialize map
 			//_MapRenderer.Initialize(mission, map, OnLoadMapComplete);

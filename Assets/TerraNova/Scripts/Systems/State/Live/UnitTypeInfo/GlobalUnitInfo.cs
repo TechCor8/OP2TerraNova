@@ -1,5 +1,4 @@
-﻿using DotNetMissionSDK;
-using TerraNova.Systems.Constants;
+﻿using TerraNova.Systems.Constants;
 
 namespace TerraNova.Systems.State.Live.UnitTypeInfo
 {
